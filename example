@@ -1,0 +1,61 @@
+/* touch the left circle in and out*/
+
+
+#define TOUCH_MODULES_GT911
+
+#include <Arduino_GFX_Library.h>
+#include <TouchLib.h>
+#include <Wire.h>
+
+#define PIN_IIC_SCL 9
+#define PIN_IIC_SDA 8
+#define PIN_TOUCH_INT 4
+#define PIN_TOUCH_RES -1
+#define GFX_BL 2
+
+TouchLib touch(Wire, PIN_IIC_SDA, PIN_IIC_SCL, GT911_SLAVE_ADDRESS2);
+
+Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
+  5, 3, 46, 7,
+  1, 2, 42, 41, 40,
+  39, 0, 45, 48, 47, 21,
+  14, 38, 18, 17, 10,
+  0, 8, 4, 8,
+  0, 8, 4, 8,
+  1, 16000000, false,
+  0, 0, 0);
+Arduino_RGB_Display *gfx = new Arduino_RGB_Display(
+  800 /* width */, 480 /* height */, rgbpanel, 0 /* rotation */, true /* auto_flush */);
+
+void setup(void) {
+  Serial.begin(115200);
+  gfx->begin();
+  gfx->fillScreen(RGB565_WHITE);
+  touch.init();
+  gfx->fillCircle(300, 100, 50, RGB565_RED);
+  gfx->fillCircle(500, 100, 50, RGB565_GREEN);
+  gfx->fillCircle(700, 100, 50, RGB565_BLUE);
+
+  delay(2000);
+}
+void loop() {
+  gfx->drawCircle(100, 100, 50, RGB565_RED);
+  delay(5);
+  if (touch.read()) {
+    TP_Point t = touch.getPoint(0);
+    if (t.x > 50 && t.x < 150 && t.y > 50 && t.y < 150) {
+      gfx->fillCircle(100, 100, 50, RGB565_RED);
+
+      Serial.print(t.x);
+      Serial.print("    ");
+      Serial.println(t.y);
+    }
+
+    else {
+      Serial.print(t.x);
+      Serial.print("    ");
+      Serial.println(t.y);
+     gfx->fillCircle(100, 100, 50, RGB565_BLUE);
+    }
+  }
+}
